@@ -1,212 +1,239 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>银行凭条录入测试系统</title>
+    <meta charset="UTF-8">
+    <title>汉字录入速度测试</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-        }
-        #timer {
-            color: #ff4444;
-            font-size: 2em;
-        }
-        #voucher {
-            font-size: 3em;
-            letter-spacing: 5px;
-            margin: 30px 0;
-        }
-        #inputField {
-            font-size: 1.5em;
-            padding: 10px;
-            width: 300px;
-        }
-        .stats {
-            background: #f0f0f0;
-            padding: 15px;
-            margin-top: 20px;
-        }
-        .config {
-            margin: 15px 0;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        #durationInput {
-            padding: 8px;
-            width: 100px;
-            font-size: 1.1em;
-        }
-        #loadStatus {
-            color: #666;
-            margin-top: 10px;
-        }
+        /* 保持原有样式不变 */
+        body { font-family: '微软雅黑', sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; line-height: 1.8; }
+        .config { margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px; }
+        .text-container { margin: 30px 0; font-size: 18px; }
+        .source-line { color: #666; margin: 15px 0; padding: 10px; border-left: 3px solid #4CAF50; background: #fff; }
+        .input-line { width: 100%; padding: 12px; font-size: 16px; margin: 10px 0; border: 2px solid #ddd; border-radius: 4px; }
+        .char-highlight { transition: color 0.3s; }
+        .correct { color: #4CAF50; }
+        .wrong { color: #f44336; }
+        #timer { font-size: 24px; color: #2196F3; margin: 15px 0; }
+        #result { font-size: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; margin-top: 20px; }
+        button { background: #2196F3; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #1976D2; }
     </style>
 </head>
 <body>
-    <h1>银行凭条录入测试</h1>
-    
-    <!-- 修改后的配置区域 -->
     <div class="config">
-        <input type="number" id="durationInput" value="60" min="10" placeholder="测试时间(秒)">
+        <input type="number" id="testTime" value="300" min="60" step="30" placeholder="测试时间(秒)">
         <button onclick="startTest()">开始测试</button>
+        <div id="timer"></div>
     </div>
-    <div id="loadStatus">正在加载题库...</div>
-
-    <!-- 测试显示区域 -->
-    <div id="testArea" style="display:none;">
-        <div id="timer">60</div>
-        <div id="voucher"></div>
-        <input type="text" id="inputField" autocomplete="off">
-        <div class="stats">
-            正确数：<span id="correctCount">0</span> | 
-            正确率：<span id="accuracy">0</span>% |
-            速度：<span id="speed">0.0</span>/分钟
-        </div>
-    </div>
+    
+    <div id="textContainer" class="text-container"></div>
+    <div id="result"></div>
 
     <script>
-        let vouchers = [];
-        let currentIndex = 0;
+        const sampleText = `森善卦皇定命工及久二力了严宝党您笔恺高格根尚舍社沈事耐南盼盆品刀人内牛片边读笼峦
+鸥娄麻麦茂男判七求币绑餐合回交决匡老列新绣询杨起洽秦容桑射攻含何宏见一入又造赵种
+准综香猛请康晚寒丁嗓伞盾法飞风局克况冷留露淋芒虹后易咏雨情圈蛋精怀觉蓝龄罗钱桥亲
+班倍城岛标彻量愣单剑姜界才川寸大丙布册五仙兄港源鑫铺虫禁美泯青取券乳扁便柄波小也
+已于圣颂汤温比不尺仇女千三山难庞谱萨道灯方分夫公下子巴铭宁轻荣融潘熏丰归环获聂双
+训迅洋原员展行休旭习袖虚课宽乐磊词淡登迪第常晨趁带迎涌悦张顿湖凡干口上僧葱翻息洗
+夏宵泫沿要页仲州朱冯复富郑迈飘琼顾蛮闷亢言谭残负宫故河红四太天少升什船从崔荒惠极
+集照庄资宾斗反勾临声霜度段封溶硕诵痕勤染普强乔钦和虎佳官果杭江角究君项须寻告更均
+伟问许培浦档忘欠户化今毛切唐特庭铁权苏当汇会楷伦洛马纳赢硬养商绍术位希辛形备采抹
+冒玫发贵几堡场超台通练刘鲁关类离辽烁左安百侠相辞邓琴清仿患喃进靠轮随脸建买排间钧
+开凯柔是首理茹阮妹没孟奈传雷莉星音映松所汪凭蓉斌彩参产处莫乃农但低豆灿操禅晓学战
+洞恩芳协欣姓降夯选薛赞念胡悔基竟健服刚耿流密苗杜坊李滴堂望唯雪梁区若沙受刷叁旺味
+锈演叶亿洪花活记家娟录蒙谋舱陈达森善卦皇定命工及久二力了严宝党您笔恺高格根尚舍社
+沈事耐南盼盆品刀人内牛片边读笼峦鸥娄麻麦茂男判七求币绑餐合回交决匡老列新绣询杨起
+洽秦容桑射攻含何宏见一入又造赵种准综香猛请康晚寒丁嗓伞盾法飞风局克况冷留露淋芒虹
+后易咏雨情圈蛋精怀觉蓝龄罗钱桥亲班倍城岛标彻量愣单剑姜界才川寸大丙布册五仙兄港源
+鑫铺虫禁美泯青取券乳扁便柄波小也已于圣颂汤温比不尺仇女千三山难庞谱萨道灯方分夫公
+下子巴铭宁轻荣融潘熏丰归环获聂双训迅洋原员展行休旭习袖虚课宽乐磊词淡登迪第常晨趁
+带迎涌悦张顿湖凡干口上僧葱翻息洗夏宵泫沿要页仲州朱冯复富郑迈飘琼顾蛮闷亢言谭残负
+宫故河红四太天少升什船从崔荒惠极集照庄资宾斗反勾临声霜度段封溶硕诵痕勤染普强乔钦
+和虎佳官果杭江角究君项须寻告更均伟问许培浦档忘欠户化今毛切唐特庭铁权苏当汇会楷伦
+洛马纳赢硬养商绍术位希辛形备采抹冒玫发贵几堡场超台通练刘鲁关类离辽烁左安百侠相辞
+邓琴清仿患喃进靠轮随脸建买排间钧开凯柔是首理茹阮妹没孟奈传雷莉星音映松所汪松所汪
+凭蓉斌彩参产处莫乃农但低豆灿操禅晓学战洞恩芳协欣姓降夯选薛赞念胡悔基竟健服刚耿流
+密苗杜坊李滴堂望唯雪梁区若沙受刷叁旺味锈演叶亿洪花活记家娟录凭蓉斌彩参产处莫乃农
+但低豆灿操禅晓学战洞恩芳协欣姓降夯选薛赞念胡悔基竟健服刚耿流密苗杜坊李滴堂望唯雪
+梁区若沙受刷叁旺味锈演叶亿洪花复富郑迈飘琼顾蛮闷亢言谭残负宫故河红四太天少升什船
+从崔荒惠极集照庄资宾斗反勾临声霜度段封溶硕诵痕勤染普强乔钦和虎佳官果杭江角究君项
+须寻告更均伟问许培浦档忘欠户化今毛切唐特庭铁权苏当汇会楷伦洛马纳赢硬养商绍术位希
+辛形备采抹冒玫发贵几堡场超台通练刘鲁关类离辽烁左安百侠相辞邓琴清仿患喃进靠轮随脸
+建买排间钧开凯柔是首理茹阮妹没孟奈传雷莉星音映松所汪凭蓉斌彩参产处莫乃农但低豆灿
+操禅晓学战洞恩芳协欣姓降夯选薛赞念胡悔基竟健服刚耿流密苗杜坊李滴堂望唯雪梁区若沙
+受刷叁旺味锈演叶亿洪花活记家娟录蒙谋舱陈达能娘近孔森善卦皇定命工及久二力了严宝党
+您笔恺高格根尚舍社沈事耐南盼盆品刀人内牛片边读笼峦鸥娄麻麦茂男判七求币绑餐合回交
+决匡老列新绣询杨起洽秦容桑射攻含何宏见一入又造赵种准综香猛请康晚寒丁嗓伞盾法飞风
+局克况冷留露淋芒虹后易咏雨情圈蛋精怀觉蓝龄罗钱桥亲班倍城岛标彻量愣单剑姜界才川寸
+大丙布册五仙兄港源鑫铺虫禁美泯青取券乳扁便柄波小也已于圣颂汤温比不尺仇女千三山难
+庞谱萨道灯方分夫公下子巴铭宁轻荣融潘熏丰归环获聂双训迅洋原员展行休旭习袖虚课宽乐
+磊词淡登迪第常晨趁带迎涌悦张顿湖凡干口上僧葱翻息洗夏宵泫沿要页仲州朱冯活记家娟录
+蒙谋舱陈达能娘近孔能娘近孔老列新绣询杨起洽秦容桑射攻含何宏见一入又造赵种准综香芒
+`;
+
+        let currentLine = 0;
         let correctCount = 0;
-        let timer;
+        let totalInputCount = 0; // 新增：总输入字符数
+        let testDuration = 300;
+        let timerId;
         let startTime;
-        let testDuration = 60;
+        let isComposing = false;
 
-        // 页面加载时自动获取题库
-        window.addEventListener('DOMContentLoaded', async () => {
-            try {
-                // 使用相对路径获取sample.txt（确保文件在仓库根目录）
-                const response = await fetch('d.txt');
-                if (!response.ok) throw new Error('题库加载失败');
+        // 初始化文本显示
+        function initText() {
+            const lines = sampleText.split('\n');
+            const container = document.getElementById('textContainer');
+            container.innerHTML = '';
+            
+            lines.forEach((line, index) => {
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'source-line';
+                lineDiv.innerHTML = `<div id="sourceLine${index}">${highlightChars(line, '')}</div>`;
                 
-                const data = await response.text();
-                vouchers = data.split('\n')
-                    .map(line => line.trim())
-                    .filter(line => line.length > 0);
-                    
-                shuffleArray(vouchers);
-                document.getElementById('loadStatus').textContent = `已加载 ${vouchers.length} 条题目`;
+                const input = document.createElement('input');
+                input.className = 'input-line';
+                input.id = `inputLine${index}`;
+                input.style.display = index === 0 ? 'block' : 'none';
                 
-                // 加载失败时显示备用上传
-            } catch (error) {
-                document.getElementById('loadStatus').innerHTML = `
-                    ${error.message}，请上传本地题库文件：
-                    <input type="file" id="fallbackFile" accept=".txt" style="margin-top:10px">
-                `;
-                document.getElementById('fallbackFile').addEventListener('change', handleFallbackFile);
-            }
-        });
+                input.addEventListener('compositionstart', () => isComposing = true);
+                input.addEventListener('compositionend', (e) => {
+                    isComposing = false;
+                    handleInput(e, index);
+                });
+                
+                container.appendChild(lineDiv);
+                container.appendChild(input);
+            });
+        }
 
-        // 处理备用文件上传
-        function handleFallbackFile(e) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                vouchers = e.target.result.split('\n')
-                    .map(line => line.trim())
-                    .filter(line => line.length > 0);
-                shuffleArray(vouchers);
-                document.getElementById('loadStatus').textContent = `已加载 ${vouchers.length} 条题目`;
-            };
-            
-            reader.readAsText(file);
+        // 字符高亮处理
+        function highlightChars(source, input) {
+            return [...source].map((char, i) => {
+                if(i >= input.length) return `<span class="char-highlight">${char}</span>`;
+                const status = char === input[i] ? 'correct' : 'wrong';
+                return `<span class="char-highlight ${status}">${char}</span>`;
+            }).join('');
         }
 
         // 开始测试
         function startTest() {
-            if (vouchers.length === 0) {
-                alert('题库尚未加载完成！');
-                return;
-            }
-
-            testDuration = parseInt(document.getElementById('durationInput').value) || 60;
-            if (testDuration < 10) {
-                alert('测试时间不能少于10秒');
-                return;
-            }
-
-            document.getElementById('testArea').style.display = 'block';
-            document.getElementById('inputField').focus();
+            const timeInput = parseInt(document.getElementById('testTime').value);
+            if (timeInput < 10) return alert("测试时间至少10秒");
             
-            currentIndex = 0;
+            testDuration = timeInput;
+            currentLine = 0;
             correctCount = 0;
+            totalInputCount = 0; // 重置输入总数
+            
+            initText();
+            document.getElementById('result').innerHTML = '';
             startTime = Date.now();
             
-            showNextVoucher();
-            startTimer();
+            const inputs = document.querySelectorAll('.input-line');
+            inputs.forEach((input, index) => {
+                input.value = '';
+                input.oninput = (e) => !isComposing && handleInput(e, index);
+                input.disabled = index !== 0;
+                input.style.display = index === 0 ? 'block' : 'none';
+            });
             
-            document.getElementById('inputField').onkeydown = function(e) {
-                if (e.key === 'Enter') checkAnswer();
-            };
+            timerId = setInterval(updateTimer, 200);
+            inputs[0].disabled = false;
+            inputs[0].focus();
         }
 
-        // 剩余函数保持不变
-        function showNextVoucher() {
-            if (currentIndex >= vouchers.length) {
-                endTest();
-                return;
+        // 处理输入（重大修改）
+        function handleInput(e, lineIndex) {
+            if(isComposing) return;
+            
+            const input = e.target.value;
+            const sourceLine = sampleText.split('\n')[lineIndex];
+            const prevLength = parseInt(e.target.dataset.prevLength) || 0;
+            const currentLength = input.length;
+            
+            // 计算输入总数（考虑增删操作）
+            totalInputCount += Math.abs(currentLength - prevLength);
+            e.target.dataset.prevLength = currentLength;
+
+            // 更新高亮显示
+            document.getElementById(`sourceLine${lineIndex}`).innerHTML = 
+                highlightChars(sourceLine, input);
+            
+            // 计算正确数
+            const newCorrect = [...input].reduce((count, char, i) => 
+                (i < sourceLine.length && char === sourceLine[i]) ? count + 1 : count, 0);
+            correctCount = correctCount + newCorrect - (e.target.dataset.correct || 0);
+            e.target.dataset.correct = newCorrect;
+
+            // 自动跳转和回退逻辑（新增）
+            handleLineNavigation(e.target, lineIndex, currentLength, sourceLine.length);
+        }
+
+        // 新增：行导航控制
+        function handleLineNavigation(inputElem, lineIndex, currentLen, maxLen) {
+            const inputs = document.querySelectorAll('.input-line');
+            
+            // 向前跳转
+            if (currentLen === maxLen && lineIndex < inputs.length - 1) {
+                inputs[lineIndex].style.opacity = '0.5';
+                setTimeout(() => {
+                    inputs[lineIndex].disabled = true;
+                    inputs[lineIndex].style.display = 'none';
+                    inputs[lineIndex+1].style.display = 'block';
+                    inputs[lineIndex+1].disabled = false;
+                    inputs[lineIndex+1].focus();
+                    currentLine = lineIndex+1;
+                }, 300);
             }
-            document.getElementById('voucher').textContent = vouchers[currentIndex];
-            document.getElementById('inputField').value = '';
-        }
-
-        function startTimer() {
-            const timerElement = document.getElementById('timer');
             
-            timer = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                const remaining = testDuration - elapsed;
-                
-                timerElement.textContent = remaining;
-                
-                const speed = (correctCount / (elapsed/60)) || 0;
-                document.getElementById('speed').textContent = speed.toFixed(1);
-                
-                if (remaining <= 0) {
-                    endTest();
-                }
-            }, 200);
+            // 向后回退（新增逻辑）
+            if (currentLen === 0 && lineIndex > 0) {
+                inputs[lineIndex].style.opacity = '0.5';
+                setTimeout(() => {
+                    inputs[lineIndex].disabled = true;
+                    inputs[lineIndex].style.display = 'none';
+                    inputs[lineIndex-1].style.display = 'block';
+                    inputs[lineIndex-1].disabled = false;
+                    inputs[lineIndex-1].focus();
+                    currentLine = lineIndex-1;
+                }, 300);
+            }
         }
 
-        function checkAnswer() {
-            const userInput = document.getElementById('inputField').value.trim();
-            const correctAnswer = vouchers[currentIndex];
+        // 更新计时器
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const remaining = testDuration - elapsed;
             
-            if (userInput === correctAnswer) correctCount++;
+            document.getElementById('timer').textContent = 
+                `剩余时间：${Math.floor(remaining/60)}分${remaining%60}秒`;
             
-            currentIndex++;
-            updateStats();
-            showNextVoucher();
+            if (remaining <= 0) endTest();
         }
 
-        function updateStats() {
-            const total = currentIndex;
-            const accuracy = total > 0 ? (correctCount / total * 100) : 0;
-            document.getElementById('correctCount').textContent = correctCount;
-            document.getElementById('accuracy').textContent = accuracy.toFixed(2);
-        }
-
+        // 结束测试（修改正确率计算）
         function endTest() {
-            clearInterval(timer);
-            const total = currentIndex;
-            const accuracy = total > 0 ? (correctCount / total * 100) : 0;
-            const finalSpeed = (correctCount / (testDuration/60)).toFixed(1);
+            clearInterval(timerId);
+            document.querySelectorAll('.input-line').forEach(input => {
+                input.disabled = true;
+                input.style.opacity = '0.6';
+            });
             
-            alert(`测试结束！\n总录入数：${total}\n正确数：${correctCount}\n正确率：${accuracy.toFixed(2)}%\n最终速度：${finalSpeed} 正确/分钟`);
+            const accuracy = totalInputCount > 0 ? 
+                ((correctCount / totalInputCount) * 100).toFixed(1) : 0;
             
-            document.getElementById('testArea').style.display = 'none';
+            document.getElementById('result').innerHTML = `
+                <h3>测试结果</h3>
+                <p>总输入字符：${totalInputCount}</p>
+                <p>正确字符数：${correctCount}</p>
+                <p>正确率：${accuracy}%</p>
+                <p>录入速度：${Math.round(correctCount/(testDuration/60))}字/分钟</p>
+            `;
         }
 
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
+        // 初始化页面
+        initText();
     </script>
 </body>
 </html>
